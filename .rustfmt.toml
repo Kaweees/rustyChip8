@@ -1,0 +1,8 @@
+max_width = 80
+tab_spaces = 2
+hard_tabs = false
+
+# Enable only with nightly channel via - cargo +nightly fmt
+brace_style = "PreferSameLine"
+control_brace_style = "AlwaysSameLine"
+empty_item_single_line = true
