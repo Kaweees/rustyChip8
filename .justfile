@@ -23,9 +23,9 @@ web:
   @trunk build
 
 # Run a package
-run:
+run *args='':
   @echo "Running..."
-  @cargo run
+  @cargo run -- {{args}}
 
 # Remove build artifacts and non-essential files
 clean:
