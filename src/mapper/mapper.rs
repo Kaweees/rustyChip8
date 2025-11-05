@@ -38,4 +38,30 @@ impl Mapper {
       panic!("Memory write out of bounds");
     }
   }
+
+  // Print memory contents
+  pub fn print_memory(&self, address: u32, count: u32) {
+    // Padding to align the memory address
+    let _aligned_start = address.wrapping_sub(address % 16);
+    let _start_address = address;
+    let mut num = _aligned_start;
+    let end_address = address + count;
+    while num != end_address {
+      if num % 16 == 0 {
+        println!();
+        print!("0x{:08x}: ", num);
+      }
+      if (num < _start_address) || (num >= end_address) {
+        print!("   ");
+      } else {
+        let byte = self.ram[num as usize];
+        print!("{:02x} ", byte);
+      }
+      if (num + 1) % 8 == 0 && (num + 1) % 16 != 0 {
+        print!("   ");
+      }
+      num += 1;
+    }
+    println!();
+  }
 }

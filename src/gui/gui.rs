@@ -24,6 +24,7 @@ pub async fn main() {
 
   let mut chip8 = Chip8::new();
   chip8.load_rom(&file);
+  chip8.mapper.print_memory(0x0025, 200);
   while !is_quit_requested() {
     chip8.cycle();
     chip8.mapper.display.update();
