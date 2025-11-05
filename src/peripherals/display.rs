@@ -5,17 +5,9 @@
 // (0,0)  -> (63,0)
 // (0,31) -> (63,31)
 // */
-const KEYPAD_SIZE: usize = 16;
+use crate::constants::{DISPLAY_HEIGHT, DISPLAY_WIDTH};
 
-// Constants for display size and scale factor in pixels
-const DISPLAY_WIDTH: usize = 64;
-const DISPLAY_HEIGHT: usize = 32;
-const SCALE_FACTOR: usize = 20;
-const CYCLE_DELAY: usize = 3;
-
-// Constants for display screen size
-const SCREEN_WIDTH: usize = DISPLAY_WIDTH * SCALE_FACTOR;
-const SCREEN_HEIGHT: usize = DISPLAY_HEIGHT * SCALE_FACTOR;
+use macroquad::prelude::Color;
 
 pub struct Display {
   // Array to represent display
@@ -51,5 +43,8 @@ impl Display {
 
   pub fn update(&mut self) {
     // TODO: Implement display update
+  }
+  pub fn clear(&mut self) {
+    self.buffer.fill(false);
   }
 }
