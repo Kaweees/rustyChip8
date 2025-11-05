@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 // Constants for game speed
 pub const TARGET_FPS: u32 = 60; // Target frames per second

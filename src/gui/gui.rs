@@ -26,6 +26,7 @@ pub async fn main() {
   chip8.load_rom(&file);
   while !is_quit_requested() {
     chip8.cycle();
+    chip8.mapper.display.update();
     next_frame().await;
   }
   std::process::exit(EXIT_SUCCESS);

@@ -1,6 +1,6 @@
 use crate::constants::{
   DISPLAY_HEIGHT, DISPLAY_WIDTH, FRAME_DURATION, INSTRUCTIONS_PER_FRAME,
-  PROGRAM_START, RAM_SIZE,
+  KEYPAD_SIZE, PROGRAM_START, RAM_SIZE,
 };
 use crate::mapper::mapper::Mapper;
 use rand::Rng;
@@ -33,6 +33,8 @@ pub struct Chip8 {
   pub i: u16,      // Index Register (I, 16-bit), - stores memory address
   pub pc: u16, // Program Counter (PC, 16-bit), - stores address of next instruction to execute
   pub sp: usize, // Stack Pointer (S, 8-bit), - points to location on memory bus
+  pub delay_timer: u8,
+  pub sound_timer: u8,
   pub mapper: Mapper,
   pub frame_duration: Duration,
   pub last_cycle_time: Instant,
@@ -42,17 +44,22 @@ pub struct Chip8 {
 
 impl Chip8 {
   pub fn new() -> Self {
-    Chip8 {
+    let mut chip8 = Chip8 {
       v: [0; 16],
       i: 0,
       pc: PROGRAM_START as u16,
       sp: 0,
+      delay_timer: 0,
+      sound_timer: 0,
       mapper: Mapper::new(),
       frame_duration: FRAME_DURATION,
       last_cycle_time: Instant::now(),
       opcode: 0x0000,
       rng: rand::rng(),
-    }
+    };
+    // Load fontset into memory at address 0x000
+    chip8.mapper.ram[0..FONTSET.len()].copy_from_slice(FONTSET);
+    chip8
   }
 
   // Reads a byte from the memory at the specified address
@@ -98,8 +105,15 @@ impl Chip8 {
     // Execute multiple instructions per frame to maintain game speed
     for _ in 0..INSTRUCTIONS_PER_FRAME {
       self.fetch();
-      // Temporary stub: advance PC by 2 bytes per instruction
-      self.pc = self.pc.wrapping_add(2);
+      self.execute();
+    }
+
+    // Update timers
+    if self.delay_timer > 0 {
+      self.delay_timer -= 1;
+    }
+    if self.sound_timer > 0 {
+      self.sound_timer -= 1;
     }
     self.last_cycle_time = Instant::now();
   }
@@ -173,7 +187,7 @@ impl Chip8 {
       }
       0x7000 => {
         // 0x7XNN: Adds NN to Vx
-        self.v[x] += nn;
+        self.v[x] = self.v[x].wrapping_add(nn);
         self.pc += 2;
       }
       0x8000 => {
@@ -193,18 +207,24 @@ impl Chip8 {
             self.v[x] = self.v[x] & self.v[y];
             self.pc += 2;
           }
+          0x3 => {
+            // 0x8XY3: Sets Vx to Vx XOR Vy
+            self.v[x] = self.v[x] ^ self.v[y];
+            self.pc += 2;
+          }
           0x4 => {
             // 0x8XY4: Adds Vy to Vx. VF is set to 1 if there's a carry,
             // otherwise 0
-            self.v[0xF] = if self.v[x] + self.v[y] > 0xFF { 1 } else { 0 };
-            self.v[x] += self.v[y];
+            let sum = self.v[x] as u16 + self.v[y] as u16;
+            self.v[0xF] = if sum > 0xFF { 1 } else { 0 };
+            self.v[x] = sum as u8;
             self.pc += 2;
           }
           0x5 => {
             // 0x8XY5: Vx = Vx - Vy, VF is set to 0 if there's a borrow,
             // otherwise 1
             self.v[0xF] = if self.v[x] > self.v[y] { 1 } else { 0 };
-            self.v[x] -= self.v[y];
+            self.v[x] = self.v[x].wrapping_sub(self.v[y]);
             self.pc += 2;
           }
           0x6 => {
@@ -218,7 +238,7 @@ impl Chip8 {
             // 0x8XY7: Sets Vx to Vy - Vx. VF is set to 0 if there's a
             // borrow, otherwise 1
             self.v[0xF] = if self.v[y] > self.v[x] { 1 } else { 0 };
-            self.v[x] = self.v[y] - self.v[x];
+            self.v[x] = self.v[y].wrapping_sub(self.v[x]);
             self.pc += 2;
           }
           0xE => {
@@ -243,7 +263,6 @@ impl Chip8 {
       0xB000 => {
         // 0xBNNN: Jumps to the address NNN + V0
         self.pc = nnn + self.v[0] as u16;
-        self.pc += 2;
       }
       0xC000 => {
         // 0xCXNN: Sets Vx to a random number AND NN
@@ -296,7 +315,78 @@ impl Chip8 {
           _ => todo!("Unknown opcode: {:04X}", self.opcode),
         }
       }
-
+      0xF000 => {
+        match nn {
+          0x07 => {
+            // 0xF007: Sets Vx to the value of the delay timer
+            self.v[x] = self.delay_timer;
+            self.pc += 2;
+          }
+          0x0A => {
+            // 0xF00A: A key press is awaited, and then stored in Vx
+            let mut key_pressed = false;
+            for i in 0..KEYPAD_SIZE {
+              if self.mapper.keypad.get_key(i) {
+                self.v[x] = i as u8;
+                self.pc += 2;
+                key_pressed = true;
+                break;
+              }
+            }
+            if !key_pressed {
+              self.pc = self.pc.wrapping_sub(2);
+            }
+          }
+          0x15 => {
+            // 0xF015: Sets the delay timer to Vx
+            self.delay_timer = self.v[x];
+            self.pc += 2;
+          }
+          0x18 => {
+            // 0xF018: Sets the sound timer to Vx
+            self.sound_timer = self.v[x];
+            self.pc += 2;
+          }
+          0x1E => {
+            // 0xF01E: Adds Vx to I
+            self.i = self.i.wrapping_add(self.v[x] as u16);
+            self.pc += 2;
+          }
+          0x29 => {
+            // 0xF029: Sets I to the location of the sprite for the
+            // character in Vx
+            self.i = self.v[x] as u16 * 5;
+            self.pc += 2;
+          }
+          0x33 => {
+            // 0xF033: Stores the binary-coded decimal representation of
+            // Vx, with the most significant of three digits at the
+            // address in I, the middle digit at I plus 1, and the least
+            // significant digit at I plus 2
+            self.write(self.i, self.v[x] / 100);
+            self.write(self.i + 1, (self.v[x] / 10) % 10);
+            self.write(self.i + 2, self.v[x] % 10);
+            self.pc += 2;
+          }
+          0x55 => {
+            // 0xF055: Stores V0 to VX (including VX) in memory starting
+            // at address I
+            for j in 0..=x {
+              self.write(self.i + j as u16, self.v[j as usize]);
+            }
+            self.pc += 2;
+          }
+          0x65 => {
+            // 0xFX65: Fills V0 to VX (including VX) with values from
+            // memory starting at address I
+            for j in 0..=x {
+              self.v[j as usize] = self.read(self.i + j as u16);
+            }
+            self.pc += 2;
+          }
+          _ => todo!("Unknown opcode: {:04X}", self.opcode),
+        }
+      }
       _ => todo!("Unimplemented opcode: {:04X}", self.opcode),
     }
   }
