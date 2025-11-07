@@ -1,0 +1,55 @@
+---
+name: CI Pipeline for Rust
+# Controls when the workflow will run
+on:
+  push:
+    branches: [master, main, "[0-9]+.[0-9]+.x"]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+defaults:
+  run:
+    working-directory: .
+
+# The sequence of runs in this workflow:
+jobs:
+  format:
+    name: Format with Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - run: lsb_release -a
+      - run: uname -a
+      - name: Check out Repository Code
+        uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+          components: rustfmt
+      - name: Run rustfmt
+        run: cargo fmt -- --config-path .rustfmt.toml
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: ${{ github.actor }}
+          author_email: ${{ github.actor }}@users.noreply.github.com
+          message: "Code formatting and linting"
+          add: "." # Add all files
+  lint:
+    name: Lint with Clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - run: lsb_release -a
+      - run: uname -a
+      - name: Check out Repository Code
+        uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+          components: clippy
+      - name: Run clippy
+        run: cargo clippy --all-features --all-targets

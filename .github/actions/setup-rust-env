@@ -1,0 +1,34 @@
+---
+name: "Setup Rust Environment"
+description: "Set up Rust environment for the given Rust version"
+# The inputs for this action:
+inputs:
+  rust-toolchain:
+    description: "Rust toolchain to use"
+    required: true
+    default: "nightly"
+  rust-targets:
+    description: "Rust targets to use"
+    required: true
+  rust-components:
+    description: "Rust components to use"
+    required: true
+  just-version:
+    description: "just version to use"
+    required: true
+    default: "1.5.0"
+
+# The sequence of runs in this action:
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ inputs.rust-toolchain }}
+        targets: ${{ inputs.rust-targets }}
+        components: ${{ inputs.rust-components }}
+    - name: Setup just
+      uses: extractions/setup-just@v2
+      with:
+        just-version: ${{ inputs.just-version }}
