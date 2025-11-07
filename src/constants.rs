@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+pub const VERSION_STRING: &str = env!("CARGO_PKG_VERSION");
+
 // Constants for game speed
 pub const TARGET_FPS: u32 = 60; // Target frames per second
 pub const FRAME_DURATION: Duration =

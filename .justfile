@@ -25,7 +25,7 @@ web:
 # Run a package
 run *args='':
   @echo "Running..."
-  @cargo run -- {{args}}
+  cargo run {{args}}
 
 # Remove build artifacts and non-essential files
 clean:

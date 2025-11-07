@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+clap = "4.5.51"
 console_engine = "2.6.1"
 macroquad = "0.4.14"
 rand = "0.9.2"

@@ -24,7 +24,7 @@
 </div>
 
 <!-- ABOUT THE PROJECT -->
-An NES emulator and implementation of 6502 processor written in Rust. I always wanted to learn to emulate hardware. For this task, I chose a language that is memory-safe, compiled, free-form, and statically-type, and commonly used in systems programming.
+An emulator and implementation of the CHIP-8 processor written in Rust
 
 ### Built With
 
@@ -37,9 +37,9 @@ An NES emulator and implementation of 6502 processor written in Rust. I always w
 ## Preview
 
 <p align="center">
-  <img src="assets/img/train.png"
+  <img src="assets/img/demo.png"
   width = "80%"
-  alt = "Training a model on MNIST dataset"
+  alt = "Space Invaders running on the emulator."
   />
 </p>
 
@@ -48,7 +48,7 @@ An NES emulator and implementation of 6502 processor written in Rust. I always w
 
 ### Prerequisites
 
-Before attempting to build this project, make sure you have [Nix](https://nixos.org/download.html) with [Flake](https://nixos.wiki/wiki/Flakes) support installed on your machine.
+Before attempting to build this project, make sure you have [Nix](https://nixos.org/download.html) installed on your machine.
 
 ### Installation
 
@@ -70,19 +70,9 @@ To get a local copy of the project up and running on your machine, follow these 
 
 3. Build and run the project
 
-   - For native platform (Linux, Windows, macOS):
-
-      ```sh
-      just run
-      ```
-
-   - For the web (requires `trunk` and `wasm-bindgen`):
-
-      ```sh
-      just web
-      ```
-
-      The project can be then accessed at [http://localhost:8080](http://localhost:8080)
+   ```sh
+   just run -- --file ./rom/space-invaders.ch8
+   ```
 
 ## Usage
 
