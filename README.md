@@ -74,14 +74,19 @@ To get a local copy of the project up and running on your machine, follow these 
    just run -- --rom ./rom/space-invaders.ch8
    ```
 
-## Usage
+<!-- PROJECT FILE STRUCTURE -->
+## Project Structure
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-<!-- LICENSE -->
-<!-- https://choosealicense.com/ -->
+```sh
+rustyChip8/
+├── .github/                       - GitHub Actions CI/CD workflows
+├── src/                           - project source files
+├── Cargo.toml                     - Rust package manager configuration
+├── Cargo.lock                     - Rust package manager lock file
+├── LICENSE                        - project license
+├── README.md                      - you are here
+└── justfile                       - Just runner configuration
+```
 
 ## License
 
