@@ -1,9 +1,10 @@
 use crate::constants::{SCREEN_HEIGHT, SCREEN_WIDTH, VERSION_STRING};
 use crate::cpu::chip8::Chip8;
-use clap::{Arg, ArgAction, Command};
+use clap::Parser;
 use macroquad::prelude::is_quit_requested;
 use macroquad::prelude::next_frame;
 use macroquad::window::Conf;
+use std::path::PathBuf;
 
 fn window_conf() -> Conf {
   Conf {
@@ -16,28 +17,30 @@ fn window_conf() -> Conf {
   }
 }
 
+#[derive(Parser, Debug)]
+#[command(author, version = VERSION_STRING, about = "Chip-8 Emulator")]
+struct Cli {
+  /// Path to the ROM file to load
+  #[arg(
+    short,
+    long,
+    value_name = "FILE",
+    help = "Path to the ROM file",
+    required = true
+  )]
+  rom: PathBuf,
+
+  /// Whether to run verbosely
+  #[arg(short, long, default_value_t = false)]
+  verbose: bool,
+}
+
 #[macroquad::main(window_conf)]
 pub async fn main() {
-  let cmd = Command::new(env!("CARGO_CRATE_NAME"))
-    .about("make a hexdump or do the reverse")
-    .version(VERSION_STRING)
-    .arg_required_else_help(true)
-    .multicall(false)
-    .arg(
-      Arg::new("file")
-        .short('f')
-        .long("file")
-        .required(true)
-        .action(ArgAction::Set)
-        .num_args(1..)
-        .help("The file to load"),
-    )
-    .get_matches();
-
-  let file = cmd.get_one::<String>("file").unwrap();
+  let cli = Cli::parse();
 
   let mut chip8 = Chip8::new();
-  chip8.load_rom(&file);
+  chip8.load_rom(cli.rom);
   chip8.mapper.print_memory(0x0025, 200);
   while !is_quit_requested() {
     chip8.cycle();

@@ -7,6 +7,7 @@ use rand::Rng;
 use rand::rngs::ThreadRng;
 use std::fs::File;
 use std::io::Read;
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 pub const FONTSET: &[u8] = &[
@@ -80,7 +81,7 @@ impl Chip8 {
   }
 
   // Method to load a ROM into memory
-  pub fn load_rom(&mut self, filename: &str) {
+  pub fn load_rom(&mut self, filename: PathBuf) {
     let mut file = File::open(filename).unwrap();
     file
       .read(

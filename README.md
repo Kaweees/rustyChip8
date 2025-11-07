@@ -71,7 +71,7 @@ To get a local copy of the project up and running on your machine, follow these 
 3. Build and run the project
 
    ```sh
-   just run -- --file ./rom/space-invaders.ch8
+   just run -- --rom ./rom/space-invaders.ch8
    ```
 
 ## Usage
